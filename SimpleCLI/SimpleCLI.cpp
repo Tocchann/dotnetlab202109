@@ -9,12 +9,13 @@ int main( int argc, char** argv )
 {
 	if( argc > 1 )
 	{
+		std::cout << "Execute " << argv[1] << std::endl;
 		auto threadID = GetCurrentThreadId();
 		auto result = PostThreadMessage( threadID, WM_USER, 0, 0 );
 		auto lastError = GetLastError();
 		std::cout << "PostThreadMessage()=" << result << ":LastError=" << lastError << std::endl;
-		Sleep( 1000 );
-		std::cout << "Ending " << argv[1] << std::endl;
+		std::cout << "Push Enter Key!!" << std::endl;
+		getchar();
 	}
 	else
 	{
