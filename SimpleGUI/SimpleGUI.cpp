@@ -11,6 +11,10 @@
 # define new DEBUG_NEW
 #endif
 
+#define PRE_ACTION_NONE 1
+#define PRE_ACTION_PEEK 2
+#define PRE_ACTION_WAIT 3
+
 #define MAX_LOADSTRING 100
 
 // このコード モジュールに含まれる関数の宣言を転送します:
@@ -31,7 +35,6 @@ void TestSubThreadAction( HWND hwnd );
 void APIENTRY DispVersion( HWND hwnd, int cmdId );
 void APIENTRY TestWaitInputIdle( HWND hwnd, LPCWSTR execFileName );
 // --追加--
-
 int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
 					   _In_opt_ HINSTANCE hPrevInstance,
 					   _In_ LPWSTR    lpCmdLine,
@@ -43,6 +46,7 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER( lpCmdLine );
 
 	DumpQueueStatus( L"First\n" );
+	
 
 #if 0
 	TestPostThreadMessage( L"MainThread" );
@@ -66,7 +70,10 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
 	if( __argc > 1 )
 	{
 		std::wstring str;
-#if 1
+#define PRE_ACTION PRE_ACTION_NONE
+//#define PRE_ACTION PRE_ACTION_PEEK
+//#define PRE_ACTION PRE_ACTION_WAIT
+#if PRE_ACTION == PRE_ACTION_PEEK
 		MSG msg;
 		auto result = PeekMessage( &msg, nullptr, 0, 0, PM_NOREMOVE );
 		if( result )
@@ -77,7 +84,8 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
 		{
 			str = L"メッセージなし";
 		}
-#else
+#endif
+#if PRE_ACTION == PRE_ACTION_WAIT
 		auto result = MsgWaitForMultipleObjects( 0, nullptr, FALSE, 1000, 0 );
 		switch( result )
 		{
@@ -87,7 +95,10 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
 		default:			str = std::format( L"other{0}", result ); break;
 		}
 #endif
-		MessageBox( nullptr, str.data(), title, MB_OK );
+		if( !str.empty() )
+		{
+			MessageBox( nullptr, str.data(), title, MB_OK );
+		}
 	}
 	// アプリケーション初期化の実行:
 	if( !InitInstance( hInstance, nCmdShow, title, wndclsName ) )
@@ -137,7 +148,15 @@ int MinimumMessageLoop()
   }
   return static_cast<int>(msg.wParam);
 }
-
+void DoEvents_Minimum()
+{
+	MSG msg;
+	while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
+	{
+		TranslateMessage( &msg );
+		DispatchMessage( &msg );
+	}
+}
 
 //
 //  関数: MyRegisterClass()
